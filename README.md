@@ -92,7 +92,7 @@
 import duckdb
 
 # Подключаемся к файлу базы данных (создастся, если не существует)
-con = duckdb.connect(f'{path_db}meteodata.db')
+con = duckdb.connect('meteodata.db')
 
 # Запрос с ответом в формате датафрейма Pandas
 res = con.execute("""SELECT stations.station_id, stations.name, provinces.name AS province
