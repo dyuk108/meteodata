@@ -7,7 +7,7 @@
 
 import duckdb
 
-path_db = '/catalogs/' # путь к БД
+path_db = '/YandexDisk/_data/' # путь к БД (следует установить свой)
 
 import duckdb
 
