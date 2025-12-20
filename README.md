@@ -105,10 +105,10 @@ import duckdb
 con = duckdb.connect('meteodata.db')
 
 # Запрос с ответом в формате датафрейма Pandas
-res = con.execute("""SELECT stations.station_id, stations.name, provinces.name AS province
+df = con.execute("""SELECT stations.station_id, stations.name, provinces.name AS province
 FROM stations
-JOIN provinces ON provinces.province_id = stations.province_id""").fetchdf()
-print(res)
+JOIN provinces ON provinces.province_id = stations.province_id""").df()
+print(df)
 
 con.close()
 ```
@@ -120,7 +120,7 @@ import duckdb
 
 beg_year = 2015 # первый год в последовательности
 end_year = 2024 # последний год в последовательности
-station = 27625
+station = 27625 # для какой станции выводим информацию
 
 # Подключаемся к файлу базы данных (создастся, если не существует)
 con = duckdb.connect('meteodata.db')

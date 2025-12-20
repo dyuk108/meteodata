@@ -15,8 +15,8 @@ import os
 
 path_src = '/catalogs/Srok8c/Srok8c/' # путь к файлам *.dat
 path_out = '/catalogs/Srok8c/Srok8c_csv/' # куда будем писать файлы csv
-path_stat = '/catalogs/Srok8c/Srok8c_stat/' # куда будем писать файлы статистики
 path_snow = '/catalogs/Snow/Snow/' # данные о снежном покрове
+path_snow_out = '/catalogs/Snow/Snow_csv/' # данные о снежном покрове
 
 # ---------------------------------
 # Функции проверки данных для целых и вещественных чисел соответственно.
@@ -57,22 +57,20 @@ for filename in files:
         # Читаем файл с данными по снежному покрову. Если таковой имеется.
         # ---------------------------------
         if os.path.isfile(path_snow + filename_snow):
-            flag_snow = True # флаг, показывающий, что эти данные для этой станции есть
-            snow = {} # словарь, ключ: строка даты (без времени), значение - высота снежного покрова
             f = open(path_snow + filename_snow)
+            fw = open(path_snow_out + filename_out, 'w')
             for s in f:
                 if len(s) > 10: # строка не пустая
+                    station_id = int(s2i(s, 0, 5)) # id станции
                     year = int(s2i(s, 6, 10)) # год
-                    month = int(s2i(s, 11, 13)) # год
-                    day = int(s2i(s, 14, 16)) # год
-                    date = f'{year:04d}-{month:02d}-{day:02d}' # строка даты
-
+                    month = int(s2i(s, 11, 13)) # месяц
+                    day = int(s2i(s, 14, 16)) # день
                     h_snow = s2i(s, 17, 21).strip() # высота снежного покрова (см.), строка
-                    snow[date] = h_snow # заносим в словарь
+                    
+                    date = f'{year:04d}-{month:02d}-{day:02d}' # строка только даты
+                    s_out = f'{date},{station_id},{h_snow}\n' # строка для записи
+                    fw.write(s_out)
             f.close()
-        else:
-            flag_snow = False
-            print('Нет данных о снежном покрове.')
 
         # ---------------------------------
         # Работаем со срочными данными.
@@ -101,8 +99,7 @@ for filename in files:
             s2f(s, 141, 146), # температура поверхности почвы
             s2f(s, 181, 186), # температура воздуха по сухому термометру
             s2i(s, 241, 244), # относительная влажность воздуха
-            s2f(s, 267, 273), # атмосферное давление на уровне станции
-            snow[date_only] if flag_snow and date_only in snow else '' # уровень снежного покрова (если есть)
+            s2f(s, 267, 273) # атмосферное давление на уровне станции
             )
 
             s_out = f'{date},' + ','.join(params) + '\n' # строка для записи

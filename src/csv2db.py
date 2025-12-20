@@ -8,8 +8,9 @@
 
 import duckdb
 
-path_csv = '/catalogs/Srok8c/Srok8c_csv/' # откуда брать CSV-файлы
-path_csv2 = 'data/'
+path_csv = '/catalogs/Srok8c/Srok8c_csv/' # срочные данные
+path_snow = '/catalogs/Snow/Snow_csv/' # суточные данные
+path_csv2 = 'data/' # списки метеостанций и регионов
 path_out = '/catalogs/' # куда записывать результат
 
 import duckdb
@@ -17,8 +18,8 @@ import duckdb
 # Подключаемся к файлу базы данных (создастся, если не существует)
 con = duckdb.connect(f'{path_out}meteodata.db')
 
-# 1. Загрузка meteodata из нескольких CSV
-meteodata_schema = {
+# 1. Загрузка срочных данных из нескольких CSV
+synoptic_schema = {
     'date': 'TIMESTAMP', # дата, время
     'station_id': 'INTEGER', # индекс станции
     'weather_code': 'INTEGER', # код погоды между сроками
@@ -28,17 +29,16 @@ meteodata_schema = {
     'ground_temperature': 'FLOAT', # температура поверхности почвы
     'temperature': 'FLOAT', # температура воздуха по сухому термометру
     'humidity': 'INTEGER', # относительная влажность воздуха
-    'pressure': 'INTEGER', # атмосферное давление на уровне станции
-    'snow': 'INTEGER' # уровень снежного покрова (см, если есть)
+    'pressure': 'INTEGER' # атмосферное давление на уровне станции
 }
 
 con.execute(f"""
-    CREATE TABLE meteodata AS
+    CREATE TABLE synoptic AS
     SELECT * FROM read_csv('{path_csv}*.csv',
                            header=true,
                            columns=?,
                            auto_detect=false)
-""", [meteodata_schema])
+""", [synoptic_schema])
 
 # 2. Загрузка meteostations из одного файла
 stations_schema = {
@@ -72,9 +72,26 @@ con.execute(f"""
                            auto_detect=false)
 """, [provinces_schema])
 
-# (Опционально) Проверка
-print("meteodata count:", con.execute("SELECT COUNT(*) FROM meteodata").fetchone()[0])
+# 4. Загрузка суточных данных
+daily_schema = {
+    'date': 'DATE', # дата, время
+    'station_id': 'INTEGER', # индекс станции
+    'snow': 'INTEGER' # уровень снежного покрова (см, если есть)
+}
+
+con.execute(f"""
+    CREATE TABLE daily AS
+    SELECT * FROM read_csv('{path_snow}*.csv',
+                           header=true,
+                           columns=?,
+                           auto_detect=false)
+""", [daily_schema])
+
+
+# Проверка
+print("synoptic count:", con.execute("SELECT COUNT(*) FROM synoptic").fetchone()[0])
 print("stations count:", con.execute("SELECT COUNT(*) FROM stations").fetchone()[0])
 print("provinces count:", con.execute("SELECT COUNT(*) FROM provinces").fetchone()[0])
+print("daily count:", con.execute("SELECT COUNT(*) FROM daily").fetchone()[0])
 
 con.close()
